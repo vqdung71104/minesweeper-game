@@ -1,0 +1,123 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <cstring>
+
+using namespace std;
+
+const int maxrow = 16; // Số hàng tối đa
+const int maxcol = 16; // Số cột tối đa
+const int minum = 10; // Số lượng mìn cần đặt
+const char MINE = '*'; // Ký tự đại diện cho mìn
+const char EMPTY = '.'; // Ký tự đại diện cho ô trống
+
+char p[maxrow][maxcol]; // Mảng lưu trạng thái các ô trên bàn cờ
+int a[maxrow][maxcol];
+
+int mine_count(int row, int col) {
+    int count = 0;
+    for (int i = -1; i < 2; i++) {
+        for (int j = -1; j < 2; j++) {
+            if (row + i >= 0 && row + i < maxrow && col + j >= 0 && col + j < maxcol) {
+                if (p[row + i][col + j] == MINE) {
+                    count++;
+                }
+            }
+        }
+    }
+    return count;
+}
+
+void generate_mines() {
+    int iminum = 0; // Số mìn đã đặt
+    srand((unsigned)time(NULL));
+    while (iminum < minum) {
+        int row = rand() % maxrow; // Sinh số hàng ngẫu nhiên
+        int col = rand() % maxcol; // Sinh số cột ngẫu nhiên
+
+        int should_add = 1;
+
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (row + i >= 0 && row + i < maxrow && col + j >= 0 && col + j < maxcol) {
+                    if (p[row + i][col + j] != MINE && mine_count(row + i, col + j) > 3) {
+                        should_add = 0;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (p[row][col] == EMPTY && should_add == 1) {
+            p[row][col] = MINE; // Đặt mìn
+            iminum += 1;
+        }
+    }
+}
+
+int count_mine(int row, int col) {
+    int cntmine = 0;
+    for (int i = -1; i < 2; i++) {
+        for (int j = -1; j < 2; j++) {
+            if (row + i >= 0 && row + i < maxrow && col + j >= 0 && col + j < maxcol) {
+                if (p[row + i][col + j] == MINE) {
+                    cntmine += 1;
+                }
+            }
+        }
+    }
+    return cntmine;
+}
+
+void create_next_mine() {
+    for (int i = 0; i < maxrow; i++) {
+        for (int j = 0; j < maxcol; j++) {
+            if (p[i][j] == EMPTY) {
+                std::string countStr = std::to_string(count_mine(i, j));
+                p[i][j] = countStr[0];
+            }
+        }
+    }
+}
+
+void print(char arr[maxrow][maxcol]) {
+    // In ra trạng thái các ô trên bàn cờ
+    for (int i = 0; i < maxrow; i++) {
+        for (int j = 0; j < maxcol; j++) {
+            cout << arr[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+int main() {
+    memset(p, EMPTY, sizeof(p)); // Khởi tạo mảng p với giá trị EMPTY (ô trống)
+
+    generate_mines(); // Đặt mìn
+    create_next_mine(); // Đặt các số cạnh mìn
+
+    int cntturn = 0;
+    while (1) {
+        int cr, cc;
+        cout << "Bạn hãy chọn hàng và cột!" << endl;
+        cin >> cr >> cc;
+        if (p[cr][cc] != MINE) {
+            int num = stoi(string(1, p[cr][cc]));
+            a[cr][cc] = num;
+            print(reinterpret_cast<char(*)[maxcol]>(a));
+            cout << endl;
+            cntturn++;
+    } else {
+        cout << "Bạn đã thua!" << endl;
+        print(p);
+        cout << endl;
+        break;
+    }
+    if (cntturn == maxcol * maxrow - minum) {
+        cout << "Bạn đã chiến thắng!" << endl;
+        break;
+    }
+}
+
+return 0;
+}
